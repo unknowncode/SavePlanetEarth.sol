@@ -696,13 +696,13 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     address[] private _excluded;
    
     uint256 private constant MAX = ~uint256(0);
-    uint256 private _tTotal = 1000000000 * 10**6 * 10**9;
+    uint256 private constant _tTotal = 1000000000 * 10**6 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = "SavePlanetEarth";
-    string private _symbol = "SPE";
-    uint8 private _decimals = 9;
+    string private constant _name = "SavePlanetEarth";
+    string private constant _symbol = "SPE";
+    uint8 private constant _decimals = 9;
     
     uint256 public _taxFee = 2;
     uint256 private _previousTaxFee = _taxFee;
@@ -717,7 +717,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     bool public swapAndLiquifyEnabled = true;
     
     uint256 public _maxTxAmount = 5000000 * 10**6 * 10**9;
-    uint256 private numTokensSellToAddToLiquidity = 500000 * 10**6 * 10**9;
+    uint256 private immutable numTokensSellToAddToLiquidity = 500000 * 10**6 * 10**9;
     
     event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
     event SwapAndLiquifyEnabledUpdated(bool enabled);
