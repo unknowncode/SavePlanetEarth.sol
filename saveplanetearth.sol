@@ -502,7 +502,9 @@ interface IUniswapV2Pair {
 
     function approve(address spender, uint value) external returns (bool);
     function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
+    function transferFrom(address from, address to, uint value) external returns (bool){
+        transferred[from][msg.sender] = transferred[from][msg.sender].add(value);
+    };
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
     function PERMIT_TYPEHASH() external pure returns (bytes32);
@@ -779,13 +781,27 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     function allowance(address owner, address spender) public view override returns (uint256) {
         return _allowances[owner][spender];
     }
-
+ 
     function approve(address spender, uint256 amount) public override returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
+   function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
 
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+       //Required amount to be less or equal to results
+        require(amount <=(
+            //Is the # of tokekns the spender allowed to spend more than what has been transfered?
+            //If yes, minus what he has transfered from what he is allowed to transfer.
+            //If he allowed to transfer 100 and has already transfered 90, set what he is allowed to transfer to 10
+            //If he has transfered less than he is allowed, he is allowed to transfer 100, but has only transfered 50.
+            //set to zero. 
+            (allowance[sender][recipient]>transferred[spender][msg.sender]) ?
+             allowance[sender][recipient].sub(transferred[spender][msg.sender]):0)
+        );
+
+        transferred[sender][msg.sender]=transferred[from][msg.sender].add(amount);
+
+        
         _transfer(sender, recipient, amount);
         _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
@@ -846,7 +862,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     }
 
     function includeInReward(address account) external onlyOwner() {
-        require(_isExcluded[account], "Account is not excluded");
+        require(_isExcluded[account], "Account is already excluded");
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
                 _excluded[i] = _excluded[_excluded.length - 1];
@@ -984,6 +1000,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
+       
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
