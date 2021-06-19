@@ -781,38 +781,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     function allowance(address owner, address spender) public view override returns (uint256) {
         return _allowances[owner][spender];
     }
-/*method 1 that i dont really like 
-    function approve(address spender, uint256 amount) public override returns (bool) {
-         //Set allowed amount to zero
-        uint256 allowedAmount = 0;
-        //initallyAllowed= #Tokens spender is allowed to spend on the behalf of owner plus number transfered to spender
-        uint256 initallyAllowed = allowance[msg.sender][spender].add(transferred[msg.sender][spender]);
-        //Reduce Allowance.
-        //IF the amount approved is less than what was initally allowed.
-        if(amount <= initallyAllowed){
-            //IF spender was transfered more than the amount initally allowed(from transfer from function).
-            if(transferred[msg.sender][spender]<amount]){
-                //allowedAmount = amount - what spender was transfered 
-                allowedAmount = amount.sub(transferred[msg.sender][spender]);
-            }
-
-        }else{
-            //else if the amount  is more than what was initally allowed
-            allowedAmount = amount.sub(initallyAllowed);
-            allowedAmount= _approve[msg.sender][spender].add(allowedAmount);
-        }
-
-        
-        _approve(_msgSender(), spender, allowedAmount);
-        return true;
-    }
-     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        _transfer(sender, recipient, amount);
-        transferred[sender].[msg.sender] = transferred[sender][msg.sender].add(amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
-        return true;
-    }
-*/
+ 
     function approve(address spender, uint256 amount) public override returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
@@ -831,7 +800,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
         );
 
         transferred[sender][msg.sender]=transferred[from][msg.sender].add(amount);
-       // emit Transfer(sender,recipient,amount);
+
         
         _transfer(sender, recipient, amount);
         _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
@@ -893,12 +862,10 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     }
 
     function includeInReward(address account) external onlyOwner() {
-        require(_isExcluded[account], "Account is not excluded");
-        uint256 excLength = _excluded.length;
-        for (uint256 i = 0; i < excLength; i++) {
+        require(_isExcluded[account], "Account is already excluded");
+        for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
-                //_excluded[i] = _excluded[_excluded.length - 1];
-                _excluded[i] = excLength - 1;
+                _excluded[i] = _excluded[_excluded.length - 1];
                 _tOwned[account] = 0;
                 _isExcluded[account] = false;
                 _excluded.pop();
@@ -981,8 +948,7 @@ contract SavePlanetEarth is Context, IERC20, Ownable {
     function _getCurrentSupply() private view returns(uint256, uint256) {
         uint256 rSupply = _rTotal;
         uint256 tSupply = _tTotal;      
-        uint256 excLength = _excluded.length;
-        for (uint256 i = 0; i < excLength; i++) {
+        for (uint256 i = 0; i < _excluded.length; i++) {
             if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
             rSupply = rSupply.sub(_rOwned[_excluded[i]]);
             tSupply = tSupply.sub(_tOwned[_excluded[i]]);
